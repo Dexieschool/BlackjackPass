@@ -119,7 +119,6 @@ def choices(playerhand):
         choice = input(str("h = hit, s = stand"))
 
     if choice == "h":
-        hit(playerhand)
         return "h"
     if choice == "s":
         stand()
@@ -127,7 +126,6 @@ def choices(playerhand):
     if choice == "p":
         return "p"
     if choice == "d":
-        hit(playerhand)
         return "d"
 
 
@@ -170,10 +168,71 @@ def checkdeckempty():
     if not allcardsdeck:
         print("a new deck is shuffled")
         makedeck()
-        passedcards = []
         return True
     if allcardsdeck:
         return False
+
+
+def basicstrategy(playerhand,dealerhand,split):
+
+    pair = False
+    if not split:
+        if playerhand[0] == playerhand[1] and len(playerhand) == 2:
+            pair = True
+
+    if checkiface(playerhand) == False and pair == False:
+        if checkplayerhand(playerhand) >= 17:
+            return "s"
+        elif 2 <= checkdealerhand(dealerhand) <= 6 and 13 <= checkplayerhand(playerhand) <= 16:
+            return "s"
+        elif 4 <= checkdealerhand(dealerhand) <= 6 and checkplayerhand(playerhand) == 12:
+            return "s"
+        elif 2 <= checkdealerhand(dealerhand) <= 10 and checkplayerhand(playerhand) == 11:
+            return "d"
+        elif 2 <= checkdealerhand(dealerhand) <= 9 and checkplayerhand(playerhand) == 10:
+            return "d"
+        elif 3 <= checkdealerhand(dealerhand) <= 6 and checkplayerhand(playerhand) == 9:
+            return "d"
+        else:
+            return "h"
+
+    elif checkiface(playerhand) == True and pair == False:
+        if 19 <= checkplayerhand(playerhand) <= 21:
+            return "s"
+        elif checkplayerhand(playerhand) == 18 and 7 <= checkdealerhand(dealerhand) <= 8 or checkdealerhand(dealerhand) == 2:
+            return "s"
+        elif 13 <= checkplayerhand(playerhand) <= 18 and 5 <= checkdealerhand(dealerhand) <= 6:
+            return "d"
+        elif 15 <= checkplayerhand(playerhand) <= 18 and checkdealerhand(dealerhand) == 4:
+            return "d"
+        elif 17 <= checkplayerhand(playerhand) <= 18 and checkdealerhand(dealerhand) == 3:
+            return "d"
+        else:
+            return "h"
+
+    elif pair == True:
+        if playerhand[0] == "A" or playerhand[0] == 8:
+            return "p"
+        elif playerhand[0] == 10:
+            return "s"
+        elif checkplayerhand(playerhand) in [18,14,12] and 2 <= checkdealerhand(dealerhand) <= 6:
+            return "p"
+        elif checkplayerhand(playerhand) in [6,4] and 2 <= checkdealerhand(dealerhand) <= 7:
+            return "p"
+        elif checkplayerhand(playerhand) == 10 and 2 <= checkdealerhand(dealerhand) <= 9:
+            return "d"
+        elif checkplayerhand(playerhand) == 8 and 5 <= checkdealerhand(dealerhand) <= 6:
+            return "p"
+        elif checkplayerhand(playerhand) == 14 and checkdealerhand(dealerhand) == 7:
+            return "p"
+        elif checkplayerhand(playerhand) == 18 and checkdealerhand(dealerhand) in [7,10,11]:
+            return "s"
+        elif checkplayerhand(playerhand) == 18 and checkdealerhand(dealerhand) in [8,9]:
+            return "p"
+        else:
+            return "h"
+
+
 
 def gamestart(money):
     victory = 0
@@ -182,6 +241,9 @@ def gamestart(money):
     print("Saldo: {}$".format(money))
 
     bet = int(input("how much do you bet: "))
+
+    usebot = str(input("do you want to use the bot y or no: "))
+
     money -= bet
     firstsplit = False
     doubledown = False
@@ -197,7 +259,11 @@ def gamestart(money):
             money = money + bet + bet * 1.5
             print("you got a blackjack so you win: {}".format(bet+bet*1.5))
             break
-        choice = choices(globalplayerhand)
+
+        if usebot == "y":
+            choice = basicstrategy(globalplayerhand,globaldealerhand,firstsplit)
+        if usebot != "y":
+            choice = choices(globalplayerhand)
         checkplayer = checkplayerhand(globalplayerhand)
         checkdealer = checkdealerhand(globaldealerhand)
         printhand(checkplayer,checkdealer,globalplayerhand,globaldealerhand)
@@ -207,6 +273,7 @@ def gamestart(money):
             loss += 1
             break
         if choice == "h":
+            hit(globalplayerhand)
             continue
         if choice == "s":
             dealerto17(globaldealerhand)
@@ -214,6 +281,7 @@ def gamestart(money):
             firstsplit = True
             break
         if choice == "d":
+            hit(globalplayerhand)
             doubledown = True
             break
         checkplayer = checkplayerhand(globalplayerhand)
@@ -243,7 +311,8 @@ def gamestart(money):
             loss += 1
             break
 
-    if doubledown == True:
+
+    while doubledown == True:
         money -= bet
         bet *= 2
         checkplayer = checkplayerhand(globalplayerhand)
@@ -253,6 +322,7 @@ def gamestart(money):
             print("over 21 you lose: {}".format(bet))
             resethand()
             loss += 1
+            break
         elif checkplayer <= 21:
             dealerto17(globaldealerhand)
             checkplayer = checkplayerhand(globalplayerhand)
@@ -263,25 +333,24 @@ def gamestart(money):
                 resethand()
                 victory += 1
                 money += bet*2
+                break
             if checkplayer == checkdealer:
                 print("equal score so draw you get your moneyback")
                 resethand()
                 draw += 1
                 money += bet
+                break
             if checkdealer > 21:
                 print("dealer is over 21 so you win: {} ".format(bet * 2))
                 resethand()
                 victory += 1
                 money += bet*2
+                break
             if checkdealer > checkplayer:
                 print("dealer has more points than you so you lose: {}".format(bet))
                 resethand()
                 loss += 1
-
-
-
-
-
+                break
 
     if firstsplit == True:
         newhands = split()
@@ -291,7 +360,13 @@ def gamestart(money):
             checkdealer = checkdealerhand(globaldealerhand)
             printhand(checkplayer, checkdealer,hands,globaldealerhand)
             while True:
-                choice = choices(hands)
+
+                if usebot == "y":
+                    choice = basicstrategy(hands,globaldealerhand,firstsplit)
+
+                if usebot != "y":
+                    choice = choices(hands)
+
                 checkplayer = checkplayerhand(hands)
                 checkdealer = checkdealerhand(globaldealerhand)
                 printhand(checkplayer, checkdealer,hands,globaldealerhand)
@@ -338,6 +413,7 @@ def gamestart(money):
                 continue
     resethand()
 
+    print("Saldo: {}$".format(money))
     playagain =  input(str("Do you want to play again? y or n: "))
     if playagain == "y":
         gamestart(money)
