@@ -1,7 +1,8 @@
 import random
 import time
 
-facecardvalue = {"B": 10, "V": 10, "H": 10}
+
+facecardvalue = {"B": 10, "V": 10, "H": 10, "A11" : 11, "A1" : 1}
 
 
 
@@ -9,9 +10,9 @@ facecardvalue = {"B": 10, "V": 10, "H": 10}
 
 
 def makedeck():
-    deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, "B", "V", "H", "A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "B", "V", "H", "A", 2,
+    deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, "B", "V", "H", "A11", 2, 3, 4, 5, 6, 7, 8, 9, 10, "B", "V", "H", "A11", 2,
                     3, 4,
-                    5, 6, 7, 8, 9, 10, "B", "V", "H", "A", 2, 3, 4, 5, 6, 7, 8, 9, 10, "B", "V", "H", "A"]
+                    5, 6, 7, 8, 9, 10, "B", "V", "H", "A11", 2, 3, 4, 5, 6, 7, 8, 9, 10, "B", "V", "H", "A11"]
     random.shuffle(deck)
     return deck
 
@@ -45,7 +46,8 @@ def addtodealerhand(dealerhand,deck):
 # mogelijk maakt dit algoritmes kapot
 def checkiface(playerhand):
     for i in playerhand:
-        if i == "A":
+        if i == "A11":
+            playerhand[playerhand.index("A11")] = "A1"
             return True
 
     return False
@@ -54,32 +56,34 @@ def checkiface(playerhand):
 def checkplayerhand(playerhand):
     sumofhand = 0
     for i in playerhand:
-        if type(i) != int and i != "A":
+        if type(i) != int:
             sumofhand += facecardvalue.get(i)
         if type(i) == int:
             sumofhand += i
-        if i == "A":
-            sumofhand += 11
-    if sumofhand > 21 and checkiface(playerhand) == True:
-        sumofhand -= 10
     if sumofhand > 21:
+        if checkiface(playerhand) == True:
+            checkplayerhand(playerhand)
         return sumofhand
     else:
         return sumofhand
 
 
+def checkhardsoft(playerhand):
+    for i in playerhand:
+        if i == "A11":
+            return False
+    return True
+
 def checkdealerhand(dealerhand):
     sumofhand = 0
     for i in dealerhand:
-        if type(i) != int and i != "A":
+        if type(i) != int:
             sumofhand += facecardvalue.get(i)
         if type(i) == int:
             sumofhand += i
-        if i == "A":
-            sumofhand += 11
-    if sumofhand > 21 and checkiface(dealerhand) == True:
-        sumofhand -= 10
     if sumofhand > 21:
+        if checkiface(dealerhand) == True:
+            checkplayerhand(dealerhand)
         return sumofhand
     else:
         return sumofhand
@@ -125,7 +129,7 @@ def printhand(playerhandvalue,dealerhandvalue,playerhand,dealerhand):
     print(playerhand,"playerhand")
     print(dealerhandvalue,"dealervalue")
     print(dealerhand,"dealerhand")
-    time.sleep(2)
+    # time.sleep(2)
 
 
 def firstround(playerhand,dealerhand,deck):
@@ -144,7 +148,7 @@ def dealerto17(dealerhand,deck):
 
 # make double down function
 def blackjack(playerhand):
-    if checkplayerhand(playerhand) == 21 and checkiface(playerhand):
+    if checkplayerhand(playerhand) == 21 and len(playerhand) == 2:
         return True
     else:
         return False
@@ -166,45 +170,46 @@ def checkdeckempty(deck):
         return False
 
 
-def basicstrategy(playerhand,dealerhand,split):
+def basicstrategy(playerhand,dealerhand,split,canDouble):
 
+    hard = checkhardsoft(playerhand)
     pair = False
     if not split:
         if playerhand[0] == playerhand[1] and len(playerhand) == 2:
             pair = True
 
-    if checkiface(playerhand) == False and pair == False:
+    if pair == False and hard == True:
         if checkplayerhand(playerhand) >= 17:
             return "s"
         elif 2 <= checkdealerhand(dealerhand) <= 6 and 13 <= checkplayerhand(playerhand) <= 16:
             return "s"
         elif 4 <= checkdealerhand(dealerhand) <= 6 and checkplayerhand(playerhand) == 12:
             return "s"
-        elif 2 <= checkdealerhand(dealerhand) <= 10 and checkplayerhand(playerhand) == 11:
+        elif 2 <= checkdealerhand(dealerhand) <= 10 and checkplayerhand(playerhand) == 11 and canDouble == True:
             return "d"
-        elif 2 <= checkdealerhand(dealerhand) <= 9 and checkplayerhand(playerhand) == 10:
+        elif 2 <= checkdealerhand(dealerhand) <= 9 and checkplayerhand(playerhand) == 10 and canDouble == True:
             return "d"
-        elif 3 <= checkdealerhand(dealerhand) <= 6 and checkplayerhand(playerhand) == 9:
+        elif 3 <= checkdealerhand(dealerhand) <= 6 and checkplayerhand(playerhand) == 9 and canDouble == True:
             return "d"
         else:
             return "h"
 
-    elif checkiface(playerhand) == True and pair == False:
+    elif pair == False and hard == False:
         if 19 <= checkplayerhand(playerhand) <= 21:
             return "s"
         elif checkplayerhand(playerhand) == 18 and 7 <= checkdealerhand(dealerhand) <= 8 or checkdealerhand(dealerhand) == 2:
             return "s"
-        elif 13 <= checkplayerhand(playerhand) <= 18 and 5 <= checkdealerhand(dealerhand) <= 6:
+        elif 13 <= checkplayerhand(playerhand) <= 18 and 5 <= checkdealerhand(dealerhand) <= 6 and canDouble == True:
             return "d"
-        elif 15 <= checkplayerhand(playerhand) <= 18 and checkdealerhand(dealerhand) == 4:
+        elif 15 <= checkplayerhand(playerhand) <= 18 and checkdealerhand(dealerhand) == 4 and canDouble == True:
             return "d"
-        elif 17 <= checkplayerhand(playerhand) <= 18 and checkdealerhand(dealerhand) == 3:
+        elif 17 <= checkplayerhand(playerhand) <= 18 and checkdealerhand(dealerhand) == 3 and canDouble == True:
             return "d"
         else:
             return "h"
 
     elif pair == True:
-        if playerhand[0] == "A" or playerhand[0] == 8:
+        if playerhand[0] == "A11" or playerhand[0] == 8:
             return "p"
         elif playerhand[0] == 10 or playerhand[0] in ["B","V","H"]:
             return "s"
@@ -212,7 +217,7 @@ def basicstrategy(playerhand,dealerhand,split):
             return "p"
         elif checkplayerhand(playerhand) in [6,4] and 2 <= checkdealerhand(dealerhand) <= 7:
             return "p"
-        elif checkplayerhand(playerhand) == 10 and 2 <= checkdealerhand(dealerhand) <= 9:
+        elif checkplayerhand(playerhand) == 10 and 2 <= checkdealerhand(dealerhand) <= 9 and canDouble == True:
             return "d"
         elif checkplayerhand(playerhand) == 8 and 5 <= checkdealerhand(dealerhand) <= 6:
             return "p"
@@ -226,6 +231,12 @@ def basicstrategy(playerhand,dealerhand,split):
             return "h"
 
 
+#TODO als 2 Acen er in zitten telt het verkeerd fix dit AF!
+#TODO kleine a en grote A als de grote A hard wordt het een kleine a met de waarde van 1 AF!
+#TODO bugtesting fout(wint te veel geld gaat ergens fout)
+#TODO laten runnen voor heel lang kijken wat de resultaten zijn(werkt)
+#TODO Card counting (moet nog gedaan worden)
+
 
 def gamestart(money,deck):
     print("Saldo: {}$".format(money))
@@ -234,10 +245,10 @@ def gamestart(money,deck):
     draw = 0
 
 
-    bet = int(input("how much do you bet: "))
-
-    usebot = str(input("do you want to use the bot y or no: "))
-
+    # bet = int(input("how much do you bet: "))
+    bet = 1
+    # usebot = str(input("do you want to use the bot y or no: "))
+    usebot = "y"
     playerhand = makehandplayer()
     dealerhand = makehanddealer()
 
@@ -245,11 +256,13 @@ def gamestart(money,deck):
     money -= bet
     firstsplit = False
     doubledown = False
-
+    canDouble = True
     firstround(playerhand,dealerhand,deck)
     checkplayer = checkplayerhand(playerhand)
     checkdealer = checkdealerhand(dealerhand)
     printhand(checkplayer, checkdealer,playerhand,dealerhand)
+
+
 
     while True:
         if blackjack(playerhand) == True:
@@ -258,28 +271,34 @@ def gamestart(money,deck):
             print("you got a blackjack so you win: {}".format(bet + bet*1.5))
             break
 
-        if checkplayer > 21:
+        if checkplayerhand(playerhand) > 21:
             print("over 21 you lose: {}".format(bet))
             loss += 1
             break
 
         checkplayer = checkplayerhand(playerhand)
         if usebot == "y":
-            choice = basicstrategy(playerhand,dealerhand,firstsplit)
+            choice = basicstrategy(playerhand,dealerhand,firstsplit,canDouble)
         if usebot != "y":
             choice = choices(playerhand)
 
 
         if choice == "h":
+            print("hit")
             hit(playerhand,deck)
             printhand(checkplayerhand(playerhand), checkdealerhand(dealerhand), playerhand, dealerhand)
+            canDouble = False
             continue
         if choice == "s":
+            print("stay")
             dealerto17(dealerhand,deck)
         if choice == "p":
+            print("split")
             firstsplit = True
+            canDouble = False
             break
         if choice == "d":
+            print("doubledown")
             printhand(checkplayerhand(playerhand), checkdealerhand(dealerhand), playerhand, dealerhand)
             hit(playerhand,deck)
             doubledown = True
@@ -317,7 +336,7 @@ def gamestart(money,deck):
         bet *= 2
 
         print("Double Down!")
-        time.sleep(0.5)
+        # time.sleep(0.5)
         checkplayer = checkplayerhand(playerhand)
         checkdealer = checkdealerhand(dealerhand)
         printhand(checkplayer, checkdealer, playerhand, dealerhand)
@@ -326,6 +345,7 @@ def gamestart(money,deck):
             print("over 21 you lose: {}".format(bet))
             loss += 1
             break
+
         elif checkplayer <= 21:
             dealerto17(dealerhand,deck)
             checkplayer = checkplayerhand(playerhand)
@@ -360,7 +380,7 @@ def gamestart(money,deck):
             printhand(checkplayerhand(hands), checkdealerhand(dealerhand),hands,dealerhand)
             while True:
                 if usebot == "y":
-                    choice = basicstrategy(hands,dealerhand,firstsplit)
+                    choice = basicstrategy(hands,dealerhand,firstsplit,canDouble)
                 if usebot != "y":
                     choice = choices(hands)
 
@@ -444,8 +464,11 @@ def playthegame():
         draws += played[2]
         chipvalue = played[3]
 
-        game = input(str("Do you want to play another game y or n: "))
+        # game = input(str("Do you want to play another game y or n: "))
+        game = "y"
         print("Wins: {} Losses: {} Draws: {}".format(wins,losses,draws))
+        if len(deck) < 10:
+            deck = makedeck()
     if game == "n":
         print("thanks for playing")
         return False
