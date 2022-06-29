@@ -101,17 +101,17 @@ def hit(playerhand,deck):
 # deze functie verandert op basis of er gesplit is en of al gedubbeldowned is
 def choices(playerhand):
     if len(playerhand) == 1:
-        choice = input(str("h = hit, s = stand"))
+        choice = input(str("h = hit, s = stand: "))
         if choice == "h":
             return "h"
         if choice == "s":
             return "s"
     if playerhand[0] == playerhand[1] and len(playerhand) < 3:
-        choice = input(str("h = hit, s = stand,d = doubledown p = split"))
+        choice = input(str("h = hit, s = stand,d = doubledown p = split: "))
     if playerhand[0] != playerhand[1] and len(playerhand) < 3:
-        choice = input(str("h = hit, s = stand, d = doubledown"))
+        choice = input(str("h = hit, s = stand, d = doubledown: "))
     elif len(playerhand) >= 3:
-        choice = input(str("h = hit, s = stand"))
+        choice = input(str("h = hit, s = stand: "))
 
     if choice == "h":
         return "h"
@@ -193,7 +193,7 @@ def gamestart(money,deck):
 
         if blackjack(playerhand) == True:
             dealerto17(dealerhand,deck)
-            print(dealerhand)
+            print(dealerhand, "dealerhand")
             if blackjack(dealerhand) == True:
                 print("equal score so draw you get your money back")
                 draw += 1
@@ -319,12 +319,13 @@ def gamestart(money,deck):
             printhand(checkplayerhand(hands), checkdealerhand(dealerhand),hands,dealerhand)
             while True:
 
-                hard = checkhardsoft(playerhand)
-                playervalue = checkplayerhand(playerhand)
+                hard = checkhardsoft(hands)
+                playervalue = checkplayerhand(hands)
                 dealervalue = checkdealerhand(dealerhand)
                 if usebot == "y":
-                    todo = Basicstrategy.basicstrategy(playerhand,playervalue,dealervalue,firstsplit,canDouble,hard)
+                    todo = Basicstrategy.basicstrategy(hands,playervalue,dealervalue,firstsplit,canDouble,hard)
                     print("The basicstrategy says you have to {} here".format(todo))
+                    choice = choices(hands)
                 if usebot == "n":
                     choice = choices(hands)
                 if usebot == "mod":

@@ -17,6 +17,9 @@ class Test(TestCase):
         self.assertEqual(Basicstrategy.basicstrategy([4, 8], 12, 3, False, True,True), "h")
         self.assertEqual(Basicstrategy.basicstrategy([2, 2], 4,  7, False, True, True), "p")
         self.assertEqual(Basicstrategy.basicstrategy([2, 2], 4,  7, True, True, True), "h")
+        self.assertEqual(Basicstrategy.basicstrategy([2], 2,  10, True, True, True), "h")
+        self.assertEqual(Basicstrategy.basicstrategy(["V", "V"], 20,  11, False, True, True), "s")
+
 
     def test_checkrunningcount(self):
         self.assertEqual(Count.checkrunningcount([2, 3, 5, 8, 9]), 3)
